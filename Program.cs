@@ -63,10 +63,47 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+
+    if (!context.Expenses.Any())
+    {
+        var user = new AppUser { UserName = "testusers", Email = "testusers@example.com" };
+        var result = await userManager.CreateAsync(user, "Tests@1234");
+
+        if (result.Succeeded)
+        {
+            // Get the created user with Id from the database
+            var createdUser = await userManager.FindByNameAsync(user.UserName);
+
+            context.Expenses.Add(new Expense
+            {
+                Title = "Test Expense",
+                Description = "This is a test expense entry",
+                Amount = 50m,
+                Date = DateTime.UtcNow,
+                Category = "Miscellaneous",
+                UserId = createdUser.Id  // Use the actual User Id here
+            });
+
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            // Handle user creation failure (optional)
+            throw new Exception("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+    }
+}
+
 
 // 🚀 Middleware Pipeline
 if (app.Environment.IsDevelopment())
