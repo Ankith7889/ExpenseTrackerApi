@@ -63,8 +63,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -78,10 +76,8 @@ using (var scope = app.Services.CreateScope())
     {
         var user = new AppUser { UserName = "testusers", Email = "testusers@example.com" };
         var result = await userManager.CreateAsync(user, "Tests@1234");
-
         if (result.Succeeded)
         {
-            // Get the created user with Id from the database
             var createdUser = await userManager.FindByNameAsync(user.UserName);
 
             context.Expenses.Add(new Expense
@@ -91,7 +87,7 @@ using (var scope = app.Services.CreateScope())
                 Amount = 50m,
                 Date = DateTime.UtcNow,
                 Category = "Miscellaneous",
-                UserId = createdUser.Id  // Use the actual User Id here
+                UserId = createdUser.Id 
             });
 
             await context.SaveChangesAsync();
@@ -103,7 +99,6 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
-
 
 // 🚀 Middleware Pipeline
 if (app.Environment.IsDevelopment())
